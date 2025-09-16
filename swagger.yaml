@@ -1,0 +1,478 @@
+openapi: 3.0.3
+info:
+  title: Job Portal API
+  version: 1.0.0
+  description: REST API documentation for Candidate, Employer, and Admin functionalities.
+
+servers:
+  - url: http://localhost:8080
+    description: Local server
+
+paths:
+
+  # Authentication & Registration
+  /auth/register/candidate:
+    post:
+      tags: [Auth]
+      summary: Candidate registration with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCandidate'
+      responses:
+        '201': { description: Registered successfully }
+
+  /auth/register/employer:
+    post:
+      tags: [Auth]
+      summary: Employer registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterEmployer'
+      responses:
+        '201': { description: Registered successfully }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login for all roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200': { description: Login successful }
+
+  /auth/verify-otp:
+    post:
+      tags: [Auth]
+      summary: Verify OTP for candidate registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPVerification'
+      responses:
+        '200': { description: OTP verified }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current session
+      responses:
+        '200': { description: Logged out }
+
+  # Candidate APIs
+  /candidate/profile:
+    get:
+      tags: [Candidate]
+      summary: Get candidate profile
+      responses:
+        '200': { description: Candidate profile }
+    put:
+      tags: [Candidate]
+      summary: Update candidate profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCandidateProfile'
+      responses:
+        '200': { description: Profile updated }
+
+  /jobs:
+    get:
+      tags: [Candidate]
+      summary: Search jobs
+      parameters:
+        - in: query
+          name: title
+          schema: { type: string }
+        - in: query
+          name: location
+          schema: { type: string }
+      responses:
+        '200': { description: List of jobs }
+
+  /jobs/{jobId}:
+    get:
+      tags: [Candidate]
+      summary: Get job and employer info
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Job detail }
+
+  /jobs/{jobId}/apply:
+    post:
+      tags: [Candidate]
+      summary: Apply to a job
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApplyJob'
+      responses:
+        '200': { description: Job applied }
+
+  /candidate/applied-jobs:
+    get:
+      tags: [Candidate]
+      summary: View applied jobs
+      responses:
+        '200': { description: Applied jobs }
+
+  /candidate/saved-jobs:
+    get:
+      tags: [Candidate]
+      summary: View saved jobs
+      responses:
+        '200': { description: Saved jobs }
+
+  /candidate/save-job/{jobId}:
+    post:
+      tags: [Candidate]
+      summary: Save a job
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Job saved }
+
+  /candidate/recommended-jobs:
+    get:
+      tags: [Candidate]
+      summary: Recommended jobs
+      responses:
+        '200': { description: Recommended jobs }
+
+  /candidate/profile-views:
+    get:
+      tags: [Candidate]
+      summary: View profile views
+      responses:
+        '200': { description: View stats }
+
+  # Employer APIs
+  /employer/profile:
+    get:
+      tags: [Employer]
+      summary: Get employer profile
+      responses:
+        '200': { description: Employer profile }
+    put:
+      tags: [Employer]
+      summary: Update employer profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmployerProfile'
+      responses:
+        '200': { description: Profile updated }
+
+  /employer/jobs:
+    get:
+      tags: [Employer]
+      summary: View all jobs
+      responses:
+        '200': { description: List of jobs }
+    post:
+      tags: [Employer]
+      summary: Create job posting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobPost'
+      responses:
+        '201': { description: Job created }
+
+  /employer/jobs/{jobId}:
+    put:
+      tags: [Employer]
+      summary: Edit a job
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobPost'
+      responses:
+        '200': { description: Job updated }
+    delete:
+      tags: [Employer]
+      summary: Delete a job
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: Job deleted }
+
+  /employer/jobs/{jobId}/applicants:
+    get:
+      tags: [Employer]
+      summary: Get applicants for a job
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Applicants list }
+
+  /employer/jobs/{jobId}/applicants/{candidateId}:
+    put:
+      tags: [Employer]
+      summary: Update applicant status
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: candidateId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200': { description: Status updated }
+
+  /employer/dashboard:
+    get:
+      tags: [Employer]
+      summary: Dashboard metrics
+      responses:
+        '200': { description: Dashboard data }
+
+  # Subscriptions
+  /subscriptions/plans:
+    get:
+      tags: [Subscription]
+      summary: Get subscription plans
+      responses:
+        '200': { description: Plans list }
+
+  /subscriptions/subscribe:
+    post:
+      tags: [Subscription]
+      summary: Subscribe to a plan
+      responses:
+        '200': { description: Subscription active }
+
+  /subscriptions/upgrade:
+    put:
+      tags: [Subscription]
+      summary: Upgrade subscription
+      responses:
+        '200': { description: Upgraded }
+
+  /subscriptions/status:
+    get:
+      tags: [Subscription]
+      summary: View current subscription
+      responses:
+        '200': { description: Subscription info }
+
+  # Admin APIs
+  /admin/dashboard:
+    get:
+      tags: [Admin]
+      summary: Admin metrics dashboard
+      responses:
+        '200': { description: Dashboard info }
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: View all users
+      responses:
+        '200': { description: User list }
+
+  /admin/users/{userId}/role:
+    put:
+      tags: [Admin]
+      summary: Change user role
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema: 
+          type: integer
+      responses:
+        '200': { description: Role updated }
+
+  /admin/jobs:
+    get:
+      tags: [Admin]
+      summary: View all jobs
+      responses:
+        '200': { description: All job posts }
+
+  /admin/jobs/{jobId}/moderate:
+    put:
+      tags: [Admin]
+      summary: Approve/reject jobs
+      parameters: 
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200': { description: Moderated }
+
+  /admin/subscriptions:
+    get:
+      tags: [Admin]
+      summary: Get all subscriptions
+      responses:
+        '200': { description: All subscriptions }
+    post:
+      tags: [Admin]
+      summary: Create a plan
+      responses:
+        '201': { description: Plan created }
+
+  /admin/subscriptions/{planId}:
+    put:
+      tags: [Admin]
+      summary: Edit a plan
+      parameters:
+      - name: planId
+        in: path
+        required: true
+        schema: 
+          type: integer
+      responses:
+        '200': { description: Plan updated }
+    delete:
+      tags: [Admin]
+      summary: Delete a plan
+      parameters:
+      - name: planId
+        in: path
+        required: true
+        schema: 
+          type: integer
+      responses:
+        '204': { description: Plan removed }
+
+  # Common API
+  
+  /upload:
+    post:
+      tags: [Common]
+      summary: Upload documents/files
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200': { description: File uploaded }
+
+
+components:
+  schemas:
+    RegisterCandidate:
+      type: object
+      required: [email, phone, password]
+      properties:
+        email: { type: string }
+        phone: { type: string }
+        password: { type: string }
+
+    RegisterEmployer:
+      type: object
+      required: [email, companyName, password]
+      properties:
+        email: { type: string }
+        companyName: { type: string }
+        password: { type: string }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string }
+        password: { type: string }
+
+    OTPVerification:
+      type: object
+      required: [email, otp]
+      properties:
+        email: { type: string }
+        otp: { type: string }
+
+    ApplyJob:
+      type: object
+      required: [candidateId]
+      properties:
+        candidateId: { type: integer }
+        resumeUrl: { type: string }
+        coverLetter: { type: string }
+
+    JobPost:
+      type: object
+      required: [title, description, locationId]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        locationId: { type: integer }
+        jobType: { type: string }       
+        salary: { type: number }         
+        qualifications: { type: string } 
+        
+    UpdateCandidateProfile:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        resumeUrl: { type: string }
+        photoUrl: { type: string }
+
+    UpdateEmployerProfile:
+      type: object
+      properties:
+        companyName: { type: string }
+        industry: { type: string }
+        logoUrl: { type: string }
+        description: { type: string }
+
+
